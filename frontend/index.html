@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Adda247 · Operations Copilot</title>
+  <meta name="description" content="AI-powered multi-agent system for automating course launch operations at Adda247." />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f5f5;
+      color: #1a1a1a;
+      min-height: 100vh;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .wrapper {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 32px 24px 80px;
+    }
+
+    /* ── Header ── */
+    header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    header h1 { font-size: 18px; font-weight: 600; }
+    header p  { font-size: 13px; color: #666; margin-top: 2px; }
+
+    /* ── Card ── */
+    .card {
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .card-title {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: #888;
+      margin-bottom: 14px;
+    }
+
+    /* ── Input area ── */
+    .input-row { display: flex; gap: 8px; }
+    #goal-input {
+      flex: 1;
+      border: 1px solid #d0d0d0;
+      border-radius: 4px;
+      padding: 10px 12px;
+      color: #1a1a1a;
+      font-family: inherit;
+      font-size: 14px;
+      outline: none;
+      background: #fff;
+      transition: border-color 0.15s;
+    }
+    #goal-input::placeholder { color: #aaa; }
+    #goal-input:focus { border-color: #1a1a1a; }
+
+    .hint { font-size: 12px; color: #888; margin-top: 10px; }
+    .hint span { color: #0057d9; cursor: pointer; }
+    .hint span:hover { text-decoration: underline; }
+
+    #launch-btn {
+      padding: 10px 20px;
+      background: #1a1a1a;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s;
+    }
+    #launch-btn:hover  { background: #333; }
+    #launch-btn:active { background: #000; }
+    #launch-btn:disabled { background: #ccc; cursor: not-allowed; }
+
+    /* ── Courses panel ── */
+    .courses-section { margin-bottom: 16px; }
+    .category-group { margin-bottom: 14px; }
+    .category-label {
+      font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.6px; color: #888; margin-bottom: 8px;
+    }
+    .course-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .course-chip {
+      display: inline-flex; flex-direction: column;
+      padding: 6px 12px; border-radius: 4px;
+      border: 1px solid #e0e0e0; background: #f8f8f8;
+      cursor: default; font-size: 13px;
+    }
+    .course-chip .chip-name { font-weight: 500; }
+    .course-chip .chip-meta { font-size: 11px; color: #888; margin-top: 2px; }
+    .course-chip:hover { border-color: #aaa; background: #f0f0f0; }
+
+    /* ── Faculty panel ── */
+    .faculty-section { margin-bottom: 16px; }
+    .faculty-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .faculty-table th {
+      text-align: left; font-size: 11px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.5px; color: #888;
+      padding: 0 8px 8px 0; border-bottom: 1px solid #e8e8e8;
+    }
+    .faculty-table td { padding: 9px 8px 9px 0; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
+    .faculty-table tr:last-child td { border-bottom: none; }
+    .faculty-name { font-weight: 500; }
+    .faculty-subj { font-size: 12px; color: #666; margin-top: 2px; }
+    .expertise-tag {
+      display: inline-block; padding: 1px 7px; border-radius: 3px; margin: 1px;
+      font-size: 11px; font-weight: 500; background: #f0f0f0; color: #444;
+    }
+    .avail-badge {
+      display: inline-block; padding: 2px 8px; border-radius: 3px;
+      font-size: 11px; font-weight: 600;
+    }
+    .avail-badge.yes { background: #e8f5e9; color: #2e7d32; }
+    .avail-badge.no  { background: #fce4ec; color: #c62828; }
+    .star-rating { color: #888; white-space: nowrap; font-size: 12px; }
+    .faculty-table tbody tr { cursor: pointer; }
+    .faculty-table tbody tr:hover td { background: #fafafa; }
+    .cal-hint { font-size: 11px; color: #aaa; margin-top: 8px; }
+
+    /* ── Mini-calendar modal ── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.35); z-index: 100;
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: #fff; border-radius: 6px; border: 1px solid #e0e0e0;
+      padding: 24px; width: 380px; max-width: 95vw;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    }
+    .modal-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 16px;
+    }
+    .modal-title { font-size: 15px; font-weight: 600; }
+    .modal-close {
+      background: none; border: none; font-size: 20px; cursor: pointer;
+      color: #888; line-height: 1; padding: 0 4px;
+    }
+    .modal-close:hover { color: #1a1a1a; }
+    .cal-month-label { font-size: 12px; color: #888; margin-bottom: 12px; }
+    .cal-grid {
+      display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px;
+    }
+    .cal-dow {
+      text-align: center; font-size: 10px; font-weight: 600;
+      color: #aaa; text-transform: uppercase; padding-bottom: 4px;
+    }
+    .cal-day {
+      text-align: center; font-size: 12px; padding: 5px 2px;
+      border-radius: 3px; cursor: default;
+    }
+    .cal-day.empty  { background: transparent; }
+    .cal-day.available { background: #f8f8f8; color: #555; }
+    .cal-day.blocked   { background: #fce4ec; color: #c62828; font-weight: 600; }
+    .cal-day.booked    { background: #fff8e1; color: #f57f17; font-weight: 600; }
+    .cal-legend { display: flex; gap: 12px; margin-top: 12px; font-size: 11px; color: #666; }
+    .cal-dot { width: 10px; height: 10px; border-radius: 2px; display: inline-block; margin-right: 4px; }
+    .cal-dot.available { background: #f8f8f8; border: 1px solid #e0e0e0; }
+    .cal-dot.blocked   { background: #fce4ec; }
+    .cal-dot.booked    { background: #fff8e1; }
+
+    /* ── Agent feed ── */
+    #agent-card { display: none; }
+
+    .agent-row {
+      display: flex;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid #f0f0f0;
+      align-items: flex-start;
+    }
+    .agent-row:last-child { border-bottom: none; }
+
+    .agent-icon {
+      width: 32px; height: 32px;
+      border-radius: 4px;
+      background: #f0f0f0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+
+    .agent-body { flex: 1; min-width: 0; }
+    .agent-name {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: #888;
+      margin-bottom: 3px;
+    }
+    .agent-msg { font-size: 13px; color: #555; }
+    .agent-msg.result { color: #1a1a1a; }
+
+    .agent-status { margin-left: auto; flex-shrink: 0; padding-top: 6px; }
+
+    /* Spinner */
+    .spinner {
+      width: 14px; height: 14px;
+      border: 2px solid #e0e0e0;
+      border-top-color: #666;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .dot-done { font-size: 15px; }
+
+    /* Typing dots */
+    .typing { display: flex; gap: 3px; align-items: center; margin-top: 4px; }
+    .typing span {
+      width: 4px; height: 4px; border-radius: 50%; background: #bbb;
+      animation: blink 1.2s infinite both;
+    }
+    .typing span:nth-child(2) { animation-delay: 0.2s; }
+    .typing span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes blink {
+      0%, 80%, 100% { opacity: 0.3; }
+      40%           { opacity: 1; }
+    }
+
+    /* ── Plan card ── */
+    #plan-card { display: none; }
+
+    .plan-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 18px; }
+    .plan-title { font-size: 17px; font-weight: 600; }
+    .plan-subtitle { font-size: 13px; color: #666; margin-top: 3px; }
+    .readiness-badge {
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      background: #e8f5e9;
+      color: #2e7d32;
+      border: 1px solid #c8e6c9;
+    }
+    .readiness-badge.warn  { background: #fff8e1; color: #f57f17; border-color: #ffe082; }
+    .readiness-badge.alert { background: #fce4ec; color: #c62828; border-color: #f48fb1; }
+
+    /* Faculty willingness */
+    .willingness-list { margin-bottom: 18px; }
+    .willingness-list h3 { font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; }
+    .willingness-item {
+      display: flex; gap: 10px; align-items: flex-start;
+      padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-size: 13px;
+    }
+    .willingness-item:last-child { border-bottom: none; }
+    .w-badge {
+      flex-shrink: 0; padding: 2px 8px; border-radius: 3px;
+      font-size: 11px; font-weight: 600; white-space: nowrap;
+    }
+    .w-badge.confirmed   { background: #e8f5e9; color: #2e7d32; }
+    .w-badge.conditional { background: #fff8e1; color: #f57f17; }
+    .w-badge.unavailable { background: #fce4ec; color: #c62828; }
+
+    .plan-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+    .plan-item { background: #f8f8f8; border: 1px solid #e8e8e8; border-radius: 4px; padding: 10px 12px; }
+    .plan-item-label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
+    .plan-item-value { font-size: 13px; font-weight: 500; }
+
+    .action-list { margin-bottom: 18px; }
+    .action-list h3 { font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; }
+    .action-item {
+      display: flex; gap: 10px; align-items: flex-start;
+      padding: 7px 0; border-bottom: 1px solid #f0f0f0; font-size: 13px;
+    }
+    .action-item:last-child { border-bottom: none; }
+    .action-num {
+      width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0;
+      background: #e8e8e8; color: #555;
+      font-size: 10px; font-weight: 600;
+      display: flex; align-items: center; justify-content: center;
+      margin-top: 1px;
+    }
+
+    .channels { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+    .channel-tag {
+      padding: 3px 9px; border-radius: 4px; font-size: 12px;
+      background: #f0f0f0; border: 1px solid #e0e0e0; color: #444;
+    }
+
+    .approve-row { display: flex; gap: 10px; margin-top: 18px; }
+    #approve-btn {
+      flex: 1; padding: 11px;
+      background: #1a6e35;
+      color: #fff; border: none; border-radius: 4px;
+      font-family: inherit; font-size: 14px; font-weight: 500; cursor: pointer;
+      transition: background 0.15s;
+    }
+    #approve-btn:hover { background: #155c2c; }
+    #approve-btn:disabled { background: #ccc; cursor: not-allowed; }
+
+    #change-btn {
+      padding: 11px 18px;
+      background: #fff;
+      color: #444; border: 1px solid #d0d0d0;
+      border-radius: 4px;
+      font-family: inherit; font-size: 14px; cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    #change-btn:hover { border-color: #999; }
+
+    /* ── Execution feed ── */
+    #exec-card { display: none; }
+    .exec-item {
+      display: flex; gap: 8px; align-items: center;
+      padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-size: 13px;
+    }
+    .exec-item:last-child { border-bottom: none; }
+    .exec-check { color: #2e7d32; font-size: 14px; }
+
+    .complete-banner {
+      margin-top: 14px; padding: 12px 16px;
+      background: #e8f5e9; border: 1px solid #c8e6c9;
+      border-radius: 4px; font-size: 14px; font-weight: 600; color: #1b5e20;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+<div class="wrapper">
+
+  <!-- Header -->
+  <header>
+    <div>
+      <h1>Operations Copilot</h1>
+      <p>Adda247 · Multi-Agent Course Launch System</p>
+    </div>
+  </header>
+
+  <!-- Input -->
+  <div class="card" id="input-card">
+    <div class="card-title">Business Goal</div>
+    <div class="input-row">
+      <input
+        id="goal-input"
+        type="text"
+        placeholder="e.g. Launch SSC Foundation Batch next month"
+        autocomplete="off"
+      />
+      <button id="launch-btn" onclick="launchWorkflow()">Launch</button>
+    </div>
+    <p class="hint">
+      Try:
+      <span onclick="setGoal('Launch SSC Foundation Batch next month')">SSC Foundation</span> ·
+      <span onclick="setGoal('Launch Banking Foundation Batch in 2 weeks')">Banking Foundation</span> ·
+      <span onclick="setGoal('Launch UPSC Prelims Batch next quarter')">UPSC Prelims</span>
+    </p>
+  </div>
+
+  <!-- Calendar Modal -->
+  <div class="modal-overlay" id="cal-modal" onclick="closeCalendar(event)">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title" id="cal-modal-title">Faculty Calendar</div>
+        <button class="modal-close" onclick="closeCalendar()">&#x2715;</button>
+      </div>
+      <div class="cal-month-label" id="cal-month-label"></div>
+      <div class="cal-grid" id="cal-grid"></div>
+      <div class="cal-legend">
+        <span><span class="cal-dot available"></span>Available</span>
+        <span><span class="cal-dot booked"></span>Booked</span>
+        <span><span class="cal-dot blocked"></span>Blocked</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Courses -->
+  <div class="card courses-section" id="courses-card">
+    <div class="card-title">Available Courses</div>
+    <div id="courses-body"><p style="color:#aaa;font-size:13px">Loading...</p></div>
+  </div>
+
+  <!-- Faculty -->
+  <div class="card faculty-section" id="faculty-card">
+    <div class="card-title">Our Faculty</div>
+    <div id="faculty-body"><p style="color:#aaa;font-size:13px">Loading...</p></div>
+  </div>
+
+  <!-- Agent Feed -->
+  <div id="agent-card">
+    <div class="card">
+      <div class="card-title">Agent Activity</div>
+      <div id="agent-feed"></div>
+    </div>
+  </div>
+
+  <!-- Plan Card -->
+  <div id="plan-card">
+    <div class="card">
+      <div class="plan-header">
+        <div>
+          <div class="plan-title" id="plan-title">—</div>
+          <div class="plan-subtitle" id="plan-subtitle">—</div>
+        </div>
+        <div class="readiness-badge" id="readiness-badge">—</div>
+      </div>
+
+      <div class="plan-grid" id="plan-grid"></div>
+
+      <!-- Faculty Willingness -->
+      <div class="willingness-list" id="willingness-section" style="display:none">
+        <h3>Faculty Willingness Responses</h3>
+        <div id="willingness-items"></div>
+      </div>
+
+      <div class="action-list">
+        <h3>Action Items</h3>
+        <div id="action-items"></div>
+      </div>
+
+      <div style="margin-bottom:4px">
+        <div class="plan-item-label" style="margin-bottom:8px">Marketing Channels</div>
+        <div class="channels" id="channels"></div>
+      </div>
+
+      <div class="approve-row">
+        <button id="approve-btn" onclick="approvePlan()">Approve &amp; Execute</button>
+        <button id="change-btn" onclick="requestChanges()">Request Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Execution Feed -->
+  <div id="exec-card">
+    <div class="card">
+      <div class="card-title">Execution Log</div>
+      <div id="exec-feed"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // Use relative path so it works across localhost, 127.0.0.1, and 0.0.0.0
+  const API = '';
+  let currentSessionId = null;
+
+  function setGoal(text) {
+    document.getElementById('goal-input').value = text;
+    document.getElementById('goal-input').focus();
+  }
+
+  function showSection(id) {
+    document.getElementById(id).style.display = 'block';
+  }
+
+  const AGENT_META = {
+    manager:    { icon: '🧠', label: 'Manager Agent' },
+    faculty:    { icon: '👨‍🏫', label: 'Faculty Agent' },
+    operations: { icon: '⚙️',  label: 'Operations Agent' },
+    marketing:  { icon: '📊', label: 'Marketing Agent' },
+    system:     { icon: '⚡',  label: 'System' },
+  };
+
+  const agentRows = {};
+
+  function upsertAgentRow(agent, eventType, message) {
+    const meta = AGENT_META[agent] || AGENT_META.system;
+    const feed = document.getElementById('agent-feed');
+
+    if (eventType === 'start') {
+      const row = document.createElement('div');
+      row.className = 'agent-row';
+      row.id = `row-${agent}-${Date.now()}`;
+      row.innerHTML = `
+        <div class="agent-icon">${meta.icon}</div>
+        <div class="agent-body">
+          <div class="agent-name">${meta.label}</div>
+          <div class="agent-msg">${message}</div>
+          <div class="typing"><span></span><span></span><span></span></div>
+        </div>
+        <div class="agent-status"><div class="spinner"></div></div>
+      `;
+      feed.appendChild(row);
+      agentRows[agent] = row;
+      row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    } else if (eventType === 'result') {
+      const row = agentRows[agent];
+      if (row) {
+        row.querySelector('.agent-msg').textContent = message;
+        row.querySelector('.agent-msg').classList.add('result');
+        const typing = row.querySelector('.typing');
+        if (typing) typing.remove();
+        row.querySelector('.agent-status').innerHTML = '<span class="dot-done">✓</span>';
+      } else {
+        appendSimpleRow(agent, message, '✓');
+      }
+
+    } else if (eventType === 'plan_ready') {
+      const row = agentRows[agent];
+      if (row) {
+        row.querySelector('.agent-msg').textContent = message;
+        row.querySelector('.agent-msg').classList.add('result');
+        const typing = row.querySelector('.typing');
+        if (typing) typing.remove();
+        row.querySelector('.agent-status').innerHTML = '<span class="dot-done">✓</span>';
+      }
+    }
+  }
+
+  function appendSimpleRow(agent, message, statusIcon) {
+    const meta = AGENT_META[agent] || AGENT_META.system;
+    const feed = document.getElementById('agent-feed');
+    const row = document.createElement('div');
+    row.className = 'agent-row';
+    row.innerHTML = `
+      <div class="agent-icon">${meta.icon}</div>
+      <div class="agent-body">
+        <div class="agent-name">${meta.label}</div>
+        <div class="agent-msg result">${message}</div>
+      </div>
+      <div class="agent-status"><span class="dot-done">${statusIcon}</span></div>
+    `;
+    feed.appendChild(row);
+    row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function renderPlan(plan) {
+    document.getElementById('plan-title').textContent = plan.batch_name;
+    document.getElementById('plan-subtitle').textContent = `Launch: ${plan.launch_date} · ${plan.duration_weeks} weeks`;
+
+    // Readiness badge — colour by score
+    const badge = document.getElementById('readiness-badge');
+    badge.textContent = `${plan.readiness_score}% Ready`;
+    badge.className = 'readiness-badge';
+    if (plan.readiness_score < 60)      badge.classList.add('alert');
+    else if (plan.readiness_score < 80) badge.classList.add('warn');
+
+    const primaryLabel = plan.faculty_primary_status
+      ? `${plan.faculty_primary} (${plan.faculty_primary_status})`
+      : plan.faculty_primary;
+
+    const gridData = [
+      { label: 'Primary Faculty', value: primaryLabel },
+      { label: 'Supporting Faculty', value: plan.faculty_secondary },
+      { label: 'Schedule', value: plan.schedule },
+      { label: 'LMS Setup', value: plan.lms_setup_period },
+      { label: 'Expected Students', value: plan.expected_students },
+      { label: 'Expected Revenue', value: plan.expected_revenue },
+    ];
+    document.getElementById('plan-grid').innerHTML = gridData.map(d => `
+      <div class="plan-item">
+        <div class="plan-item-label">${d.label}</div>
+        <div class="plan-item-value">${d.value}</div>
+      </div>
+    `).join('');
+
+    // Faculty willingness responses
+    const willingness = plan.faculty_willingness || [];
+    if (willingness.length > 0) {
+      document.getElementById('willingness-section').style.display = 'block';
+      document.getElementById('willingness-items').innerHTML = willingness.map(note => {
+        // note format: 'Name [Status]: "message"'
+        const statusMatch = note.match(/\[([^\]]+)\]/);
+        const rawStatus   = statusMatch ? statusMatch[1].toLowerCase() : '';
+        const badgeClass  = rawStatus.includes('confirmed') ? 'confirmed'
+                          : rawStatus.includes('conditional') ? 'conditional' : 'unavailable';
+        const badgeLabel  = rawStatus.includes('confirmed') ? 'Confirmed'
+                          : rawStatus.includes('conditional') ? 'Conditional' : 'Unavailable';
+        return `
+          <div class="willingness-item">
+            <span class="w-badge ${badgeClass}">${badgeLabel}</span>
+            <span>${note}</span>
+          </div>`;
+      }).join('');
+    }
+
+    document.getElementById('action-items').innerHTML = (plan.action_items || []).map((item, i) => `
+      <div class="action-item">
+        <div class="action-num">${i + 1}</div>
+        <div>${item}</div>
+      </div>
+    `).join('');
+
+    document.getElementById('channels').innerHTML = (plan.marketing_channels || []).map(ch => `
+      <span class="channel-tag">${ch}</span>
+    `).join('');
+
+    showSection('plan-card');
+    document.getElementById('plan-card').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function appendExecItem(message, isComplete) {
+    const feed = document.getElementById('exec-feed');
+    if (isComplete) {
+      const banner = document.createElement('div');
+      banner.className = 'complete-banner';
+      banner.textContent = message;
+      feed.appendChild(banner);
+    } else {
+      const item = document.createElement('div');
+      item.className = 'exec-item';
+      item.innerHTML = `<span class="exec-check">✓</span><span>${message}</span>`;
+      feed.appendChild(item);
+    }
+    feed.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }
+
+  async function launchWorkflow() {
+    const goal = document.getElementById('goal-input').value.trim();
+    if (!goal) { alert('Please enter a goal first.'); return; }
+
+    document.getElementById('launch-btn').disabled = true;
+    document.getElementById('goal-input').disabled = true;
+    document.getElementById('agent-feed').innerHTML = '';
+    document.getElementById('plan-card').style.display = 'none';
+    document.getElementById('exec-card').style.display = 'none';
+    showSection('agent-card');
+
+    let sessionId;
+    try {
+      const res = await fetch(`${API}/launch`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ goal }),
+      });
+      const data = await res.json();
+      sessionId = data.session_id;
+      currentSessionId = sessionId;
+    } catch (err) {
+      alert('Cannot reach backend. Make sure the server is running on port 8000.');
+      resetUI();
+      return;
+    }
+
+    const evtSource = new EventSource(`${API}/stream/${sessionId}`);
+
+    evtSource.onmessage = (e) => {
+      let event;
+      try { event = JSON.parse(e.data); } catch { return; }
+
+      const { agent, type, message, data } = event;
+
+      if (type === 'start')           upsertAgentRow(agent, 'start', message);
+      else if (type === 'result')     upsertAgentRow(agent, 'result', message);
+      else if (type === 'plan_ready') { upsertAgentRow(agent, 'plan_ready', message); renderPlan(data); }
+      else if (type === 'execution')  appendExecItem(message, false);
+      else if (type === 'complete')   appendExecItem(message, true);
+      else if (type === 'stream_close' || type === 'planning_done') evtSource.close();
+      else if (type === 'error') { alert('Agent error: ' + message); evtSource.close(); resetUI(); }
+    };
+
+    evtSource.onerror = () => { evtSource.close(); };
+  }
+
+  async function approvePlan() {
+    if (!currentSessionId) return;
+    document.getElementById('approve-btn').disabled = true;
+    document.getElementById('change-btn').disabled = true;
+    document.getElementById('approve-btn').textContent = 'Executing...';
+
+    showSection('exec-card');
+    document.getElementById('exec-card').scrollIntoView({ behavior: 'smooth' });
+
+    const evtSource = new EventSource(`${API}/stream/${currentSessionId}`);
+    evtSource.onmessage = (e) => {
+      let event;
+      try { event = JSON.parse(e.data); } catch { return; }
+      if (event.type === 'execution') appendExecItem(event.message, false);
+      else if (event.type === 'complete') { appendExecItem(event.message, true); evtSource.close(); }
+      else if (event.type === 'stream_close') evtSource.close();
+    };
+    evtSource.onerror = () => evtSource.close();
+
+    await fetch(`${API}/approve/${currentSessionId}`, { method: 'POST' });
+  }
+
+  function requestChanges() {
+    document.getElementById('goal-input').disabled = false;
+    document.getElementById('launch-btn').disabled = false;
+    document.getElementById('plan-card').style.display = 'none';
+    document.getElementById('agent-card').style.display = 'none';
+    document.getElementById('exec-card').style.display = 'none';
+    document.getElementById('goal-input').focus();
+    document.getElementById('goal-input').select();
+  }
+
+  function resetUI() {
+    document.getElementById('launch-btn').disabled = false;
+    document.getElementById('goal-input').disabled = false;
+  }
+
+  // ── Load courses & faculty on page init ───────────────────────────
+  async function fetchCourses() {
+    try {
+      const data = await fetch(`${API}/courses`).then(r => r.json());
+      const categories = [...new Set(data.map(c => c.category))].sort();
+      document.getElementById('courses-body').innerHTML = categories.map(cat => {
+        const courses = data.filter(c => c.category === cat);
+        return `
+          <div class="category-group">
+            <div class="category-label">${cat}</div>
+            <div class="course-chips">
+              ${courses.map(c => `
+                <div class="course-chip" title="${c.description}">
+                  <span class="chip-name">${c.name}</span>
+                  <span class="chip-meta">${c.duration_weeks}w · ₹${c.price.toLocaleString('en-IN')}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>`;
+      }).join('');
+    } catch {
+      document.getElementById('courses-body').innerHTML = '<p style="color:#aaa;font-size:13px">Could not load courses — is the backend running?</p>';
+    }
+  }
+
+  async function fetchFaculty() {
+    try {
+      const data = await fetch(`${API}/faculty`).then(r => r.json());
+      const stars = r => '★'.repeat(Math.round(r)) + '☆'.repeat(5 - Math.round(r));
+      document.getElementById('faculty-body').innerHTML = `
+        <table class="faculty-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Expertise</th>
+              <th>Subjects</th>
+              <th>Rating</th>
+              <th>Students</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${data.map(f => `
+              <tr onclick="showCalendar('${f.id}','${f.name.replace(/'/g,"\\'")}')">
+                <td>
+                  <div class="faculty-name">${f.name}</div>
+                  <div class="faculty-subj">${f.time_slot}</div>
+                </td>
+                <td>${f.expertise.map(e => `<span class="expertise-tag">${e}</span>`).join('')}</td>
+                <td style="color:#555;font-size:12px">${f.subjects.join(', ')}</td>
+                <td class="star-rating" title="${f.rating}">
+                  ${stars(f.rating)} <span style="margin-left:3px">${f.rating}</span>
+                </td>
+                <td style="color:#555">${(f.students_taught / 1000).toFixed(0)}k+</td>
+                <td>
+                  <span class="avail-badge ${f.available ? 'yes' : 'no'}">
+                    ${f.available ? 'Available' : 'Full'}
+                  </span>
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+        <p class="cal-hint">Click any row to view their calendar →</p>`;
+    } catch {
+      document.getElementById('faculty-body').innerHTML = '<p style="color:#aaa;font-size:13px">Could not load faculty — is the backend running?</p>';
+    }
+  }
+
+  // ── Mini-calendar modal ────────────────────────────────────────────
+  const MONTHS = ['January','February','March','April','May','June',
+                  'July','August','September','October','November','December'];
+  const DAYS   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+  async function showCalendar(facultyId, facultyName) {
+    const today = new Date();
+    const y = today.getFullYear();
+    const m = today.getMonth() + 1;  // 1-indexed
+
+    document.getElementById('cal-modal-title').textContent = `${facultyName} — Schedule`;
+    document.getElementById('cal-month-label').textContent = `Loading ${MONTHS[m-1]} ${y}...`;
+    document.getElementById('cal-grid').innerHTML = '';
+    document.getElementById('cal-modal').classList.add('open');
+
+    try {
+      const data = await fetch(`${API}/calendar/${facultyId}?year=${y}&month=${m}`).then(r => r.json());
+      renderCalendarGrid(data, y, m);
+    } catch {
+      document.getElementById('cal-month-label').textContent = 'Could not load calendar.';
+    }
+  }
+
+  function renderCalendarGrid(data, year, month) {
+    const label = `${MONTHS[month-1]} ${year}  ·  ${data.available_count} available · ${data.booked_count} booked · ${data.blocked_count} blocked`;
+    document.getElementById('cal-month-label').textContent = label;
+
+    const grid = document.getElementById('cal-grid');
+    grid.innerHTML = '';
+
+    // Day-of-week headers
+    DAYS.forEach(d => {
+      const el = document.createElement('div');
+      el.className = 'cal-dow';
+      el.textContent = d;
+      grid.appendChild(el);
+    });
+
+    // Empty cells before day 1
+    const firstDow = new Date(year, month - 1, 1).getDay(); // 0=Sun
+    for (let i = 0; i < firstDow; i++) {
+      const el = document.createElement('div');
+      el.className = 'cal-day empty';
+      grid.appendChild(el);
+    }
+
+    // Day cells
+    data.days.forEach(d => {
+      const el = document.createElement('div');
+      el.className = `cal-day ${d.status}`;
+      el.textContent = d.day;
+      if (d.notes) el.title = d.notes;
+      grid.appendChild(el);
+    });
+  }
+
+  function closeCalendar(event) {
+    // Close only if clicking the overlay backdrop (not the modal itself)
+    if (event && event.target !== document.getElementById('cal-modal')) return;
+    document.getElementById('cal-modal').classList.remove('open');
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('goal-input').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') launchWorkflow();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') document.getElementById('cal-modal').classList.remove('open');
+    });
+    fetchCourses();
+    fetchFaculty();
+  });
+</script>
+</body>
+</html>
