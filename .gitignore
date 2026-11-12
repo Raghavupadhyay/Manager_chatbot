@@ -24,3 +24,16 @@ TestResults.xml
 
 # Environment variables
 .env
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# Local databases
+data/
+*.db
+*.db-wal
+*.db-shm

@@ -1,0 +1,16 @@
+.git
+.gitignore
+.venv
+.env
+data
+docs
+tests
+evals
+__pycache__
+*.pyc
+*.md
+Dockerfile
+docker-compose.yml
+.dockerignore
+ops_copilot.db
+checkpoints.db
