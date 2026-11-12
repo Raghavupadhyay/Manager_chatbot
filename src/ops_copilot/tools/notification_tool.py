@@ -44,7 +44,7 @@ _MOCK_RESPONSES: dict[str, dict] = {
              "message": "Early morning slot is perfect for me. Looking forward to it."},
 }
 
-_ESCALATION_EMAIL = "ops-manager@adda247.example"
+_ESCALATION_EMAIL = "ops-manager@example.com"
 
 
 def send_faculty_notification(
@@ -60,7 +60,7 @@ def send_faculty_notification(
         f"We are planning to launch '{batch_name}' on {launch_date}.\n"
         f"Proposed schedule: {schedule_summary}\n\n"
         f"Please confirm if you are available and willing to lead this batch.\n\n"
-        f"Regards,\nAdda247 Operations Team"
+        f"Regards,\nOperations Team"
     )
     receipt = {
         "faculty_id": faculty_id, "faculty_name": faculty_name, "channel": channel,
@@ -85,7 +85,7 @@ def send_booking_confirmation(
         f"Hi {faculty_name},\n\n"
         f"Your calendar has been booked for '{batch_name}': "
         f"{slots_booked} sessions from {first_class} to {last_class}.\n\n"
-        f"Regards,\nAdda247 Operations Team"
+        f"Regards,\nOperations Team"
     )
     receipt = {
         "faculty_id": faculty_id, "faculty_name": faculty_name, "channel": "email",

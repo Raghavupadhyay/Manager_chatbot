@@ -40,7 +40,7 @@ class TestHealthAndData:
     def test_frontend_served(self, client):
         r = client.get("/")
         assert r.status_code == 200
-        assert "Adda247" in r.text
+        assert "Operations Copilot" in r.text
 
     def test_faculty_listing(self, client):
         r = client.get("/faculty")

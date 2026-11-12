@@ -32,7 +32,7 @@ async def lifespan(app: FastAPI):
 
 def create_app() -> FastAPI:
     app = FastAPI(
-        title="Adda247 Operations Copilot",
+        title="Operations Copilot",
         version="1.0.0",
         description="Multi-agent course-launch control plane with durable "
                     "human-in-the-loop approval, guardrails and observability.",

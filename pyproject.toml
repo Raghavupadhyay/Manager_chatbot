@@ -1,7 +1,7 @@
 [project]
 name = "ops-copilot"
 version = "1.0.0"
-description = "Adda247 Operations Copilot — production-grade multi-agent course launch control plane"
+description = "Operations Copilot — production-grade multi-agent course launch control plane"
 requires-python = ">=3.10"
 dependencies = [
     "fastapi==0.115.0",

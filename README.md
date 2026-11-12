@@ -1,4 +1,4 @@
-# Adda247 Operations Copilot
+# Operations Copilot
 
 Multi-agent course-launch control plane with **durable human-in-the-loop approval**, guardrails, observability, and LLM evals.
 
