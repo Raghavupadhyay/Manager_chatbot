@@ -4,6 +4,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import os
 import uuid
 from pathlib import Path
 
@@ -23,7 +24,19 @@ log = logging.getLogger("ops_copilot.api")
 
 router = APIRouter()
 
-_FRONTEND = Path(__file__).resolve().parents[3] / "frontend" / "index.html"
+def _find_frontend() -> Path:
+    override = os.getenv("FRONTEND_DIR")
+    if override:
+        p = Path(override)
+        return p / "index.html" if p.is_dir() else p
+    for parent in Path(__file__).resolve().parents:
+        candidate = parent / "frontend" / "index.html"
+        if candidate.exists():
+            return candidate
+    return Path.cwd() / "frontend" / "index.html"
+
+
+_FRONTEND = _find_frontend()
 
 
 def _graph(request: Request):

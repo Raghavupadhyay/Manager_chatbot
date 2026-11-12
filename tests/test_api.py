@@ -37,6 +37,11 @@ class TestHealthAndData:
         assert body["status"] == "ok"
         assert body["llm_enabled"] is False  # offline test path
 
+    def test_frontend_served(self, client):
+        r = client.get("/")
+        assert r.status_code == 200
+        assert "Adda247" in r.text
+
     def test_faculty_listing(self, client):
         r = client.get("/faculty")
         assert r.status_code == 200

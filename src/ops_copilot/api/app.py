@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import logging
 from contextlib import asynccontextmanager
-from pathlib import Path
 
 import aiosqlite
 from fastapi import FastAPI
@@ -15,9 +14,6 @@ from ops_copilot.db.init import init_db
 from ops_copilot.workflow.graph import build_graph
 
 log = logging.getLogger("ops_copilot.api")
-
-_PROJECT_ROOT = Path(__file__).resolve().parents[3]
-_FRONTEND = _PROJECT_ROOT / "frontend" / "index.html"
 
 
 @asynccontextmanager
